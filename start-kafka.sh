@@ -1,11 +1,12 @@
-#!/bin/bash
+#!/bin/bash -x
 
-if [[ -z "$KAFKA_PORT" ]]; then
-    export KAFKA_PORT=9092
-fi
-if [[ -z "$KAFKA_ADVERTISED_PORT" ]]; then
-    export KAFKA_ADVERTISED_PORT=$(docker port `hostname` $KAFKA_PORT | sed -r "s/.*:(.*)/\1/g")
-fi
+export KAFKA_PORT=9092
+export KAFKA_ADVERTISED_PORT=9092
+
+echo "***** BEGIN AMPLIFY MEDIA ****"
+env | sort
+echo "***** END AMPLIFY MEDIA ****"
+
 if [[ -z "$KAFKA_BROKER_ID" ]]; then
     # By default auto allocate broker ID
     export KAFKA_BROKER_ID=-1
@@ -13,6 +14,7 @@ fi
 if [[ -z "$KAFKA_LOG_DIRS" ]]; then
     export KAFKA_LOG_DIRS="/kafka/kafka-logs-$HOSTNAME"
 fi
+
 if [[ -z "$KAFKA_ZOOKEEPER_CONNECT" ]]; then
     export KAFKA_ZOOKEEPER_CONNECT=$(env | grep ZK.*PORT_2181_TCP= | sed -e 's|.*tcp://||' | paste -sd ,)
 fi
@@ -22,9 +24,9 @@ if [[ -n "$KAFKA_HEAP_OPTS" ]]; then
     unset KAFKA_HEAP_OPTS
 fi
 
-if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" && -n "$HOSTNAME_COMMAND" ]]; then
-    export KAFKA_ADVERTISED_HOST_NAME=$(eval $HOSTNAME_COMMAND)
-fi
+#if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" && -n "$HOSTNAME_COMMAND" ]]; then
+#    export KAFKA_ADVERTISED_HOST_NAME=$(eval $HOSTNAME_COMMAND)
+#fi
 
 for VAR in `env`
 do
@@ -38,6 +40,10 @@ do
     fi
   fi
 done
+
+# Custom AMPLIFYMEDIA
+echo "listeners=PLAINTEXT://0.0.0.0:9092" >> $KAFKA_HOME/config/server.properties
+echo "advertised.listeners=PLAINTEXT://kafka:9092" >> $KAFKA_HOME/config/server.properties
 
 if [[ -n "$CUSTOM_INIT_SCRIPT" ]] ; then
   eval $CUSTOM_INIT_SCRIPT
