@@ -41,9 +41,13 @@ do
   fi
 done
 
+#
 # Custom AMPLIFYMEDIA
+#
+#ip=`ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'`
 echo "listeners=PLAINTEXT://0.0.0.0:9092" >> $KAFKA_HOME/config/server.properties
-echo "advertised.listeners=PLAINTEXT://kafka:9092" >> $KAFKA_HOME/config/server.properties
+echo "advertised.listeners=PLAINTEXT://$ADVERTISED_LISTENERS" >> $KAFKA_HOME/config/server.properties
+echo "connections.max.idle.ms=600000000000" >> $KAFKA_HOME/config/server.properties
 
 if [[ -n "$CUSTOM_INIT_SCRIPT" ]] ; then
   eval $CUSTOM_INIT_SCRIPT
